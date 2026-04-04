@@ -168,12 +168,9 @@ export default function ReefScene() {
   };
 
   useEffect(() => {
-    fetch("http://localhost:3000/api/test")
-      .then((response) => response.json())
+    fetch("http://127.0.0.1:8000/state")
       .then((data) => setMessage(data.message));
       .catch((err) => console.error(err));
-  }, []);
-
 
   return (
     <div className="reef-scene">
