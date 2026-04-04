@@ -27,7 +27,7 @@ class ActionRequest(BaseModel):
 
 @app.get("/")
 def home():
-    return {"message": "Reef Riot backend running"}
+    return {"message": "TEST"}
 
 @app.get("/state")
 def get_state():
