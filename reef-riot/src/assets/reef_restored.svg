@@ -1,0 +1,88 @@
+<svg id="svg-restored" width="160" height="160" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="restoreG" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#0a3855"/>
+        <stop offset="100%" stop-color="#041c2c"/>
+      </linearGradient>
+    </defs>
+    <rect width="160" height="160" fill="url(#restoreG)"/>
+    <!-- Bright caustic light rays -->
+    <path d="M20 0 L32 50 L8 50 Z" fill="#40d0a0" opacity=".1"/>
+    <path d="M70 0 L86 60 L54 60 Z" fill="#40d0a0" opacity=".14"/>
+    <path d="M120 0 L136 48 L104 48 Z" fill="#40d0a0" opacity=".1"/>
+    <path d="M155 0 L160 30 L145 30 Z" fill="#40d0a0" opacity=".08"/>
+    <!-- Glowing seafloor -->
+    <path d="M0 122 Q30 114 60 118 Q90 122 120 115 Q145 110 160 116 L160 160 L0 160 Z" fill="#062a18"/>
+    <!-- Sandy glow -->
+    <path d="M10 138 Q50 132 100 138 Q130 142 160 136" stroke="#0e4828" stroke-width="1.5" fill="none" opacity=".5"/>
+    <!-- Vibrant coral — multiple colors, HAPPY -->
+    <!-- Left cluster - bright pink/red -->
+    <ellipse cx="16" cy="116" rx="10" ry="20" fill="#e0305a"/>
+    <ellipse cx="10" cy="108" rx="5" ry="9" fill="#f04070"/>
+    <ellipse cx="22" cy="106" rx="4" ry="8" fill="#c8205a"/>
+    <ellipse cx="16" cy="102" rx="3" ry="5" fill="#ff6090"/>
+    <!-- coral happy face -->
+    <circle cx="15" cy="112" r="2.5" fill="#6a0020" opacity=".6"/>
+    <path d="M12 116 Q15 119 18 116" stroke="#6a0020" stroke-width="1.2" fill="none" opacity=".6"/>
+    <!-- happy cheeks -->
+    <circle cx="11" cy="115" r="1.5" fill="#ff90a0" opacity=".5"/>
+    <circle cx="19" cy="115" r="1.5" fill="#ff90a0" opacity=".5"/>
+    <!-- Brain coral - glowing orange -->
+    <ellipse cx="58" cy="124" rx="16" ry="11" fill="#e07818"/>
+    <ellipse cx="58" cy="124" rx="14" ry="9" fill="none" stroke="#c05a08" stroke-width="1.5"/>
+    <path d="M44 122 Q52 116 60 120 Q66 124 72 118" stroke="#a04a06" stroke-width="1.5" fill="none"/>
+    <path d="M46 128 Q54 122 60 126 Q66 122 74 126" stroke="#a04a06" stroke-width="1.5" fill="none"/>
+    <!-- brain face -->
+    <circle cx="56" cy="122" r="2" fill="#7a3000" opacity=".5"/>
+    <circle cx="62" cy="122" r="2" fill="#7a3000" opacity=".5"/>
+    <path d="M54 128 Q58 132 64 128" stroke="#7a3000" stroke-width="1.2" fill="none" opacity=".5"/>
+    <!-- Fan coral - bright teal -->
+    <line x1="112" y1="120" x2="112" y2="80" stroke="#10a080" stroke-width="2.5"/>
+    <ellipse cx="112" cy="86" rx="22" ry="28" fill="none" stroke="#20d0a8" stroke-width="2"/>
+    <ellipse cx="112" cy="86" rx="14" ry="18" fill="none" stroke="#10a080" stroke-width="1.5" opacity=".6"/>
+    <ellipse cx="112" cy="86" rx="7" ry="9" fill="#10d0a022" stroke="#10d0a0" stroke-width="1" opacity=".4"/>
+    <!-- Tube sponges - purple -->
+    <ellipse cx="146" cy="114" rx="6" ry="16" fill="#5040a8"/>
+    <ellipse cx="140" cy="118" rx="5" ry="13" fill="#4030a0"/>
+    <ellipse cx="152" cy="116" rx="4" ry="10" fill="#6050b0"/>
+    <!-- Sea anemone -->
+    <ellipse cx="88" cy="126" rx="7" ry="5" fill="#c04488"/>
+    <path d="M84 126 Q82 118 80 112" stroke="#e060a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M86 125 Q85 116 84 110" stroke="#e060a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M88 125 Q88 115 88 108" stroke="#e060a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M90 125 Q91 116 92 110" stroke="#e060a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M92 126 Q94 118 96 112" stroke="#e060a0" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <!-- Happy fish school — smiling, bright -->
+    <ellipse cx="44" cy="62" rx="11" ry="6" fill="#60e0b0"/>
+    <path d="M55 62 L66 56 L66 68 Z" fill="#40c090"/>
+    <circle cx="36" cy="60" r="3" fill="#30c080"/>
+    <circle cx="36" cy="60" r="1.5" fill="#040c0a"/>
+    <circle cx="35" cy="59" r=".7" fill="#fff" opacity=".9"/>
+    <!-- happy brow up -->
+    <path d="M33 57 Q36 56 39 57" stroke="#1a8050" stroke-width="1.2" fill="none"/>
+    <!-- happy mouth -->
+    <path d="M33 63 Q36 66 39 63" stroke="#1a8050" stroke-width="1.2" fill="none"/>
+    <!-- Cheeks on fish -->
+    <circle cx="32" cy="62" r="1.5" fill="#90ffcc" opacity=".5"/>
+    <!-- More fish -->
+    <ellipse cx="130" cy="52" rx="8" ry="4.5" fill="#f0a030" opacity=".9"/>
+    <path d="M138 52 L146 47 L146 57 Z" fill="#d08020" opacity=".9"/>
+    <circle cx="124" cy="50" r="2.5" fill="#c07820"/>
+    <circle cx="124" cy="50" r="1.2" fill="#040c0a"/>
+    <path d="M122 53 Q124 55.5 126 53" stroke="#906010" stroke-width="1" fill="none"/>
+    <!-- Tiny fish -->
+    <ellipse cx="98" cy="44" rx="5" ry="3" fill="#80d0f0" opacity=".8"/>
+    <ellipse cx="108" cy="36" rx="4" ry="2.5" fill="#80d0f0" opacity=".7"/>
+    <ellipse cx="88" cy="50" rx="4" ry="2.5" fill="#80d0f0" opacity=".6"/>
+    <!-- Bubbles everywhere, happy -->
+    <circle cx="28" cy="38" r="3" fill="none" stroke="#40d0a060" stroke-width="1.2"/>
+    <circle cx="36" cy="22" r="2.5" fill="none" stroke="#40d0a050" stroke-width="1"/>
+    <circle cx="76" cy="28" r="4" fill="none" stroke="#40d0a070" stroke-width="1.2"/>
+    <circle cx="152" cy="34" r="3" fill="none" stroke="#40d0a050" stroke-width="1"/>
+    <circle cx="62" cy="18" r="2" fill="none" stroke="#40d0a040" stroke-width="1"/>
+    <!-- Glow aura on seafloor -->
+    <ellipse cx="80" cy="140" rx="70" ry="12" fill="#20d0a0" opacity=".04"/>
+    <!-- Label tag -->
+    <rect x="4" y="4" width="60" height="14" rx="2" fill="#20d0a011"/>
+    <text x="8" y="14" font-size="7" fill="#20d0a088" font-family="monospace" letter-spacing="1">RESTORED</text>
+  </svg>
