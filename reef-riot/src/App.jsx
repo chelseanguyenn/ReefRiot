@@ -127,75 +127,232 @@
 //   );
 // }
 
-import React, { useState } from "react";
+// import React, { useEffect, useState } from "react";
+// import SharkAvatar from "./components/SharkAvatar";
+// import PollutionNode from "./components/PollutionNode";
+// import RestorationMeter from "./components/RestorationMeter";
+// import ObjectiveList from "./components/ObjectiveList";
+// import GlitchOverlay from "./components/GlitchOverlay";
+// import FactCard from "./components/FactCard";
+// // import LandingSection from "./pages/LandingSection";
+// // import MissionSection from "./pages/MissionSection";
+// // import PlaySection from "./pages/PlaySection";
+// // import ImpactSection from "./pages/ImpactSection";
+
+// // export default function App() {
+// //   return (
+// //     <>
+// //       <LandingSection />
+// //       <MissionSection />
+// //       <PlaySection />
+// //       <ReefScene />
+// //       <ImpactSection />
+// //     </>
+// //   );
+// // }
+
+// export default function ReefScene() {
+//   const [restoration, setRestoration] = useState(30);
+//   const [showFact, setShowFact] = useState(false);
+//   const [message, setMessage] = useState("");
+
+//   const [objectives, setObjectives] = useState([
+//     { id: 1, text: "Clean 3 trash piles", completed: false },
+//     { id: 2, text: "Restore coral health", completed: false },
+//   ]);
+
+//   const handleClean = () => {
+//     const newValue = Math.min(restoration + 10, 100);
+//     setRestoration(newValue);
+//     setShowFact(true);
+//   };
+
+//   useEffect(() => {
+//     fetch("http://127.0.0.1:8000/state")
+//       .then((data) => setMessage(data.message));
+//       .catch((err) => console.error(err));
+      
+
+//   return (
+//     <div className="reef-scene">
+//       <GlitchOverlay active={restoration < 40} />
+
+//       <SharkAvatar
+//         health={restoration}
+//         mood={restoration > 60 ? "happy" : "worried"}
+//         stage={restoration > 60 ? "clean" : "polluted"}
+//       />
+
+//       <RestorationMeter value={restoration} />
+
+//       <h1>Reef Riot</h1>
+//       <p>Backend says: {message}</p>
+
+//       <PollutionNode
+//         type="🛢"
+//         x={120}
+//         y={200}
+//         cleaned={false}
+//         onClean={handleClean}
+//       />
+
+//       <ObjectiveList objectives={objectives} />
+
+//       {showFact && (
+//         <FactCard
+//           title="Ocean Fact"
+//           fact="Sharks help keep marine ecosystems balanced."
+//           onClose={() => setShowFact(false)}
+//         />
+//       )}
+//     </div>
+    
+//   );
+// }
+
+import React, { useEffect, useState } from "react";
 import SharkAvatar from "./components/SharkAvatar";
 import PollutionNode from "./components/PollutionNode";
 import RestorationMeter from "./components/RestorationMeter";
 import ObjectiveList from "./components/ObjectiveList";
 import GlitchOverlay from "./components/GlitchOverlay";
 import FactCard from "./components/FactCard";
-// import LandingSection from "./pages/LandingSection";
-// import MissionSection from "./pages/MissionSection";
-// import PlaySection from "./pages/PlaySection";
-// import ImpactSection from "./pages/ImpactSection";
 
-// export default function App() {
-//   return (
-//     <>
-//       <LandingSection />
-//       <MissionSection />
-//       <PlaySection />
-//       <ReefScene />
-//       <ImpactSection />
-//     </>
-//   );
-// }
-
-export default function ReefScene() {
-  const [restoration, setRestoration] = useState(30);
+export default function App() {
+  const [gameState, setGameState] = useState(null);
   const [showFact, setShowFact] = useState(false);
+  const [factText, setFactText] = useState("");
 
-  const [objectives, setObjectives] = useState([
-    { id: 1, text: "Clean 3 trash piles", completed: false },
-    { id: 2, text: "Restore coral health", completed: false },
-  ]);
-
-  const handleClean = () => {
-    const newValue = Math.min(restoration + 10, 100);
-    setRestoration(newValue);
-    setShowFact(true);
+  const loadState = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/state");
+      const data = await res.json();
+      setGameState(data);
+    } catch (err) {
+      console.error("Failed to load state:", err);
+    }
   };
+
+  const doAction = async (actionName) => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/action", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ action: actionName }),
+      });
+
+      const data = await res.json();
+      setGameState(data.state);
+
+      if (actionName === "remove_pollution") {
+        setFactText("Removing pollution helps sharks and coral survive.");
+      } else if (actionName === "plant_coral") {
+        setFactText("Coral reefs provide shelter for many ocean species.");
+      } else if (actionName === "save_fish") {
+        setFactText("Healthy fish populations keep reef ecosystems balanced.");
+      }
+
+      setShowFact(true);
+    } catch (err) {
+      console.error("Failed to do action:", err);
+    }
+  };
+
+  const resetGame = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:8000/reset", {
+        method: "POST",
+      });
+
+      const data = await res.json();
+      setGameState(data.state);
+      setShowFact(false);
+    } catch (err) {
+      console.error("Failed to reset game:", err);
+    }
+  };
+
+  useEffect(() => {
+    loadState();
+  }, []);
+
+  if (!gameState) {
+    return <div>Loading...</div>;
+  }
+
+  const objectives = [
+    {
+      id: 1,
+      text: "Remove pollution",
+      completed: gameState.pollution_removed > 0,
+    },
+    {
+      id: 2,
+      text: "Plant coral",
+      completed: gameState.coral_planted > 0,
+    },
+    {
+      id: 3,
+      text: "Save fish",
+      completed: gameState.fish_saved > 0,
+    },
+  ];
 
   return (
     <div className="reef-scene">
-      <GlitchOverlay active={restoration < 40} />
+      <GlitchOverlay active={gameState.health < 40} />
+
+      <h1>Reef Riot</h1>
 
       <SharkAvatar
-        health={restoration}
-        mood={restoration > 60 ? "happy" : "worried"}
-        stage={restoration > 60 ? "clean" : "polluted"}
+        health={gameState.health}
+        mood={gameState.health > 60 ? "happy" : "worried"}
+        stage={gameState.zone_stage}
       />
 
-      <RestorationMeter value={restoration} />
+      <RestorationMeter value={gameState.health} />
+
+      <p>Health: {gameState.health}</p>
+      <p>Stage: {gameState.zone_stage}</p>
+      <p>Pollution Removed: {gameState.pollution_removed}</p>
+      <p>Coral Planted: {gameState.coral_planted}</p>
+      <p>Fish Saved: {gameState.fish_saved}</p>
 
       <PollutionNode
         type="🛢"
         x={120}
         y={200}
         cleaned={false}
-        onClean={handleClean}
+        onClean={() => doAction("remove_pollution")}
       />
+
+      <div className="action-buttons">
+        <button onClick={() => doAction("remove_pollution")}>
+          Remove Pollution
+        </button>
+
+        <button onClick={() => doAction("plant_coral")}>
+          Plant Coral
+        </button>
+
+        <button onClick={() => doAction("save_fish")}>
+          Save Fish
+        </button>
+
+        <button onClick={resetGame}>Reset</button>
+      </div>
 
       <ObjectiveList objectives={objectives} />
 
       {showFact && (
         <FactCard
           title="Ocean Fact"
-          fact="Sharks help keep marine ecosystems balanced."
+          fact={factText}
           onClose={() => setShowFact(false)}
         />
       )}
     </div>
-    
   );
 }
