@@ -127,7 +127,7 @@
 //   );
 // }
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import SharkAvatar from "./components/SharkAvatar";
 import PollutionNode from "./components/PollutionNode";
 import RestorationMeter from "./components/RestorationMeter";
@@ -154,6 +154,7 @@ import FactCard from "./components/FactCard";
 export default function ReefScene() {
   const [restoration, setRestoration] = useState(30);
   const [showFact, setShowFact] = useState(false);
+  const [message, setMessage] = useState("");
 
   const [objectives, setObjectives] = useState([
     { id: 1, text: "Clean 3 trash piles", completed: false },
@@ -166,6 +167,14 @@ export default function ReefScene() {
     setShowFact(true);
   };
 
+  useEffect(() => {
+    fetch("http://localhost:3000/api/test")
+      .then((response) => response.json())
+      .then((data) => setMessage(data.message));
+      .catch((err) => console.error(err));
+  }, []);
+
+
   return (
     <div className="reef-scene">
       <GlitchOverlay active={restoration < 40} />
@@ -177,6 +186,9 @@ export default function ReefScene() {
       />
 
       <RestorationMeter value={restoration} />
+
+      <h1>Reef Riot</h1>
+      <p>Backend says: {message}</p>
 
       <PollutionNode
         type="🛢"
