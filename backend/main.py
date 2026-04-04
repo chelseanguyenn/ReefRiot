@@ -63,7 +63,7 @@ def do_action(data: ActionRequest):
 
     # 🔥 Random negative event (20% chance)
     if random.random() < 0.5:
-        game_state["health"] -= 5
+        game_state["health"] -= 12
         event_message += " — Oh no! Pollution spread and health dropped by 5."
 
     # Prevent health from going below 0
