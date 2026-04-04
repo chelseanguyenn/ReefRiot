@@ -118,4 +118,11 @@ function App() {
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <div>
+      <h1>Reef Riot</h1>
+      <p>My first React frontend is working.</p>
+    </div>
+  );
+}
