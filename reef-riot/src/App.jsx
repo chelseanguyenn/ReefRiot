@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from './assets/vite.svg'
@@ -6,6 +7,20 @@ import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+=======
+import React from "react";
+import "./App.css";
+import useGameState from "./hooks/useGameState";
+import MovableShark from "./components/MovableShark";
+import PollutionNode from "./components/PollutionNode";
+import ObjectiveList from "./components/ObjectiveList";
+import StatsPanel from "./components/StatsPanel";
+import GlitchOverlay from "./components/GlitchOverlay";
+import FactCard from "./components/FactCard";
+
+export default function App() {
+  const { state, handleNodeClick, handleInteract, reset, dismissFact } = useGameState();
+>>>>>>> Stashed changes
 
   return (
     <>
