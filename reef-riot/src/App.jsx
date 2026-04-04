@@ -134,6 +134,22 @@ import RestorationMeter from "./components/RestorationMeter";
 import ObjectiveList from "./components/ObjectiveList";
 import GlitchOverlay from "./components/GlitchOverlay";
 import FactCard from "./components/FactCard";
+// import LandingSection from "./pages/LandingSection";
+// import MissionSection from "./pages/MissionSection";
+// import PlaySection from "./pages/PlaySection";
+// import ImpactSection from "./pages/ImpactSection";
+
+// export default function App() {
+//   return (
+//     <>
+//       <LandingSection />
+//       <MissionSection />
+//       <PlaySection />
+//       <ReefScene />
+//       <ImpactSection />
+//     </>
+//   );
+// }
 
 export default function ReefScene() {
   const [restoration, setRestoration] = useState(30);
@@ -180,5 +196,6 @@ export default function ReefScene() {
         />
       )}
     </div>
+    
   );
 }
