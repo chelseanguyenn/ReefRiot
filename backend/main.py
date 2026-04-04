@@ -1,4 +1,3 @@
-import random
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -15,9 +14,11 @@ app.add_middleware(
 
 game_state = {
     "health": 40,
+    "score": 0,
     "pollution_removed": 0,
     "coral_planted": 0,
     "fish_saved": 0,
+    "fish_lost": 0,
     "zone_stage": "corrupted"
 }
 
@@ -35,42 +36,62 @@ def get_state():
 @app.post("/action")
 def do_action(data: ActionRequest):
     action = data.action
+    message = ""
 
-    # If already finished
     if game_state["zone_stage"] == "restored":
         return {
             "message": "The reef is already restored!",
             "state": game_state
         }
 
-    # Positive actions
     if action == "remove_pollution":
         game_state["pollution_removed"] += 1
-        game_state["health"] += 6
+        game_state["health"] += 10
+        game_state["score"] += 10
+        message = "Trash removed! Reef health improved."
+
     elif action == "plant_coral":
         game_state["coral_planted"] += 1
-        game_state["health"] += 8
+        game_state["health"] += 6
+        game_state["score"] += 6
+        message = "Coral planted! The reef is growing back."
+
     elif action == "save_fish":
         game_state["fish_saved"] += 1
-        game_state["health"] += 5
+        game_state["health"] += 12
+        game_state["score"] += 12
+        message = "Fish saved! Marine life is safer now."
+
+    elif action == "fish_hit_by_trash":
+        game_state["fish_lost"] += 1
+        game_state["health"] -= 15
+        game_state["score"] -= 15
+        message = "Oh no! Trash hit a fish."
+
+    elif action == "miss_trash":
+        game_state["health"] -= 5
+        game_state["score"] -= 5
+        message = "Trash was missed and polluted the reef."
+
     else:
         return {
             "message": "Invalid action",
             "state": game_state
         }
 
-    event_message = f"Action {action} completed"
-
-    # 🔥 Random negative event (20% chance)
-    if random.random() < 0.5:
-        game_state["health"] -= 12
-        event_message += " — Oh no! Pollution spread and health dropped by 5."
-
-    # Prevent health from going below 0
     if game_state["health"] < 0:
         game_state["health"] = 0
 
-    # Update stage based on health
+    if game_state["score"] < 0:
+        game_state["score"] = 0
+
+    if game_state["health"] == 0:
+        game_state["zone_stage"] = "corrupted"
+        return {
+            "message": "Game over! The reef collapsed.",
+            "state": game_state
+        }
+
     if game_state["health"] < 70:
         game_state["zone_stage"] = "corrupted"
     elif game_state["health"] < 100:
@@ -84,7 +105,7 @@ def do_action(data: ActionRequest):
         }
 
     return {
-        "message": event_message,
+        "message": message,
         "state": game_state
     }
 
@@ -93,9 +114,11 @@ def reset_game():
     global game_state
     game_state = {
         "health": 40,
+        "score": 0,
         "pollution_removed": 0,
         "coral_planted": 0,
         "fish_saved": 0,
+        "fish_lost": 0,
         "zone_stage": "corrupted"
     }
     return {"message": "Game reset", "state": game_state}
