@@ -1,3 +1,4 @@
+import random
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -35,6 +36,14 @@ def get_state():
 def do_action(data: ActionRequest):
     action = data.action
 
+    # If already finished
+    if game_state["zone_stage"] == "restored":
+        return {
+            "message": "The reef is already restored!",
+            "state": game_state
+        }
+
+    # Positive actions
     if action == "remove_pollution":
         game_state["pollution_removed"] += 1
         game_state["health"] += 6
@@ -45,16 +54,37 @@ def do_action(data: ActionRequest):
         game_state["fish_saved"] += 1
         game_state["health"] += 5
     else:
-        return {"message": "Invalid action", "state": game_state}
+        return {
+            "message": "Invalid action",
+            "state": game_state
+        }
 
-    if game_state["health"] >= 70:
+    event_message = f"Action {action} completed"
+
+    # 🔥 Random negative event (20% chance)
+    if random.random() < 0.2:
+        game_state["health"] -= 5
+        event_message += " — Oh no! Pollution spread and health dropped by 5."
+
+    # Prevent health from going below 0
+    if game_state["health"] < 0:
+        game_state["health"] = 0
+
+    # Update stage based on health
+    if game_state["health"] < 70:
+        game_state["zone_stage"] = "corrupted"
+    elif game_state["health"] < 100:
         game_state["zone_stage"] = "recovering"
-    if game_state["health"] >= 100:
-        game_state["zone_stage"] = "restored"
+    else:
         game_state["health"] = 100
+        game_state["zone_stage"] = "restored"
+        return {
+            "message": "🎉 You restored the reef!",
+            "state": game_state
+        }
 
     return {
-        "message": f"Action {action} completed",
+        "message": event_message,
         "state": game_state
     }
 
