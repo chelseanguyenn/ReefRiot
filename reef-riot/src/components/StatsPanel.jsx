@@ -56,7 +56,6 @@ const styles = `
   .reset-btn:hover { border-color: #00ffe066; color: #00ffe0; background: #00ffe008; }
   .reset-btn:active { transform: scale(0.97); }
 `;
-
 function healthColor(hp) {
   if (hp > 60) return "good";
   if (hp > 30) return "warning";
@@ -64,22 +63,46 @@ function healthColor(hp) {
 }
 
 export default function StatsPanel({ state, reset }) {
-  const { health = 100, stage = "corrupted", pollutionRemoved = 0, coralPlanted = 0, fishSaved = 0 } = state;
-  const barColor = health > 60 ? "#39ff14" : health > 30 ? "#ff6b35" : "#ef4444";
+  const {
+    health = 100,
+    stage = "corrupted",
+    encounters = {},
+  } = state || {};
+
+  const {
+    net = 0,
+    straw = 0,
+    bottle = 0,
+    bag = 0,
+  } = encounters;
+
+  const barColor =
+    health > 60 ? "#63ff1e" : health > 30 ? "#ff9a3d" : "#ff5f6d";
 
   return (
     <>
       <style>{styles}</style>
+
       <div className="stats-panel">
         <div className="stats-header">STATUS</div>
+        <div className="stat-dot" />
 
-        <div className="stat-row" style={{ flexDirection: "column", alignItems: "stretch", gap: 4 }}>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <div className="stat-row health-card">
+          <div className="health-top">
             <span className="stat-label">Health</span>
-            <span className={`stat-value ${healthColor(health)}`}>{health}</span>
+            <span className={`stat-value ${healthColor(health)}`}>
+              {Math.round(health)}
+            </span>
           </div>
+
           <div className="health-bar-track">
-            <div className="health-bar-fill" style={{ width: `${health}%`, background: barColor }} />
+            <div
+              className="health-bar-fill"
+              style={{
+                width: `${Math.max(0, Math.min(health, 100))}%`,
+                background: barColor,
+              }}
+            />
           </div>
         </div>
 
@@ -90,12 +113,31 @@ export default function StatsPanel({ state, reset }) {
 
         <div className="stats-divider" />
 
-        <div className="stat-row"><span className="stat-label">Pollution removed</span><span className="stat-value">{pollutionRemoved}</span></div>
-        <div className="stat-row"><span className="stat-label">Coral planted</span><span className="stat-value">{coralPlanted}</span></div>
-        <div className="stat-row"><span className="stat-label">Fish saved</span><span className="stat-value">{fishSaved}</span></div>
+        <div className="stat-row">
+          <span className="stat-label">Fishing nets</span>
+          <span className="stat-value">{net}</span>
+        </div>
+
+        <div className="stat-row">
+          <span className="stat-label">Straws</span>
+          <span className="stat-value">{straw}</span>
+        </div>
+
+        <div className="stat-row">
+          <span className="stat-label">Bottles</span>
+          <span className="stat-value">{bottle}</span>
+        </div>
+
+        <div className="stat-row">
+          <span className="stat-label">Plastic bags</span>
+          <span className="stat-value">{bag}</span>
+        </div>
 
         <div className="stats-divider" />
-        <button className="reset-btn" onClick={reset}>RESET</button>
+
+        <button className="reset-btn" onClick={reset}>
+          RESET
+        </button>
       </div>
     </>
   );
