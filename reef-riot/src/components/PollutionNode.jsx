@@ -1,4 +1,7 @@
 import { useState, useRef } from "react";
+import compactorSvg  from "../assets/plastic compactor.svg";
+import drillSvg      from "../assets/extractor drll.svg";
+import ghostnetSvg   from "../assets/net.svg";
 
 const styles = `
   @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
@@ -14,7 +17,7 @@ const styles = `
 
   .node-frame {
     position: relative;
-    width: 100px; height: 100px;
+    width: 110px; height: 110px;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
   }
@@ -30,9 +33,9 @@ const styles = `
   .node-frame:hover .node-outer-ring { opacity: 0.8; }
 
   .node-body {
-    width: 80px; height: 80px;
+    width: 100px; height: 100px;
     border-radius: 6px;
-    background: #0a1a20;
+    background: transparent;
     border: 1px solid var(--node-color, #ff6b35);
     display: flex; align-items: center; justify-content: center;
     position: relative;
@@ -46,10 +49,10 @@ const styles = `
     background: radial-gradient(circle at center, var(--node-glow, #ff6b3522) 0%, transparent 70%);
   }
 
-  .node-frame[data-state="active"] .node-body { animation: nodeHum 1.5s ease-in-out infinite; }
+  .node-frame[data-state="active"]     .node-body { animation: nodeHum 1.5s ease-in-out infinite; }
   .node-frame[data-state="disrupting"] .node-body { animation: nodeShake 0.1s linear infinite; border-color: #ff2dff; }
-  .node-frame[data-state="done"] .node-body { border-color: #39ff14; background: #0a1a14; }
-  .node-frame[data-state="done"] .node-body::before { background: radial-gradient(circle at center, #39ff1422 0%, transparent 70%); }
+  .node-frame[data-state="done"]       .node-body { border-color: #39ff14; }
+  .node-frame[data-state="done"]       .node-body::before { background: radial-gradient(circle at center, #39ff1422 0%, transparent 70%); }
 
   @keyframes nodeHum {
     0%, 100% { box-shadow: 0 0 8px var(--node-color, #ff6b35)44; }
@@ -64,15 +67,23 @@ const styles = `
     100% { transform: translate(0,0); }
   }
 
-  .node-icon {
-    font-size: 28px;
-    line-height: 1;
-    filter: drop-shadow(0 0 4px var(--node-color, #ff6b35));
-    transition: all 0.3s;
+  .node-asset-img {
+    width: 88px;
+    height: 88px;
+    object-fit: contain;
     z-index: 1;
+    transition: all 0.3s;
+    filter: drop-shadow(0 0 6px var(--node-color, #ff6b35));
   }
 
-  .node-frame[data-state="done"] .node-icon { filter: grayscale(0.8) drop-shadow(0 0 6px #39ff14); opacity: 0.5; }
+  .node-frame[data-state="done"] .node-asset-img {
+    filter: grayscale(0.7) brightness(0.5) drop-shadow(0 0 6px #39ff14);
+    opacity: 0.5;
+  }
+
+  .node-frame[data-state="disrupting"] .node-asset-img {
+    filter: drop-shadow(0 0 12px #ff2dffcc);
+  }
 
   .node-progress-svg {
     position: absolute; inset: -4px;
@@ -89,7 +100,7 @@ const styles = `
   }
 
   .node-frame[data-state="disrupting"] .node-arc { stroke: #ff2dff; }
-  .node-frame[data-state="done"] .node-arc { stroke: #39ff14; }
+  .node-frame[data-state="done"]       .node-arc { stroke: #39ff14; }
 
   .node-particle {
     position: absolute;
@@ -133,9 +144,9 @@ const styles = `
 `;
 
 const NODE_CONFIGS = {
-  compactor: { color: "#ff6b35", glow: "#ff6b3522", icon: "♻", label: "Plastic Compactor", hits: 3 },
-  ghostnet:  { color: "#a855f7", glow: "#a855f722", icon: "🕸", label: "Ghost Net",         hits: 1, hold: true },
-  drill:     { color: "#ef4444", glow: "#ef444422", icon: "⚙", label: "Extraction Drill",  hits: 5 },
+  compactor: { color: "#ff6b35", glow: "#ff6b3522", img: compactorSvg, label: "Plastic Compactor", hits: 3 },
+  ghostnet:  { color: "#a855f7", glow: "#a855f722", img: ghostnetSvg,  label: "Ghost Net",         hits: 1, hold: true },
+  drill:     { color: "#ef4444", glow: "#ef444422", img: drillSvg,     label: "Extraction Drill",  hits: 5 },
 };
 
 export default function PollutionNode({ node, onClick }) {
@@ -145,9 +156,9 @@ export default function PollutionNode({ node, onClick }) {
   const [particles, setParticles] = useState([]);
   const holdTimer = useRef(null);
 
-  const totalHits = cfg.hits;
+  const totalHits    = cfg.hits;
   const circumference = 2 * Math.PI * 46;
-  const dashOffset = circumference * (1 - hits / totalHits);
+  const dashOffset   = circumference * (1 - hits / totalHits);
 
   const spawnParticles = () => {
     const newP = Array.from({ length: 6 }, (_, i) => ({
@@ -179,17 +190,17 @@ export default function PollutionNode({ node, onClick }) {
     clearInterval(holdTimer.current);
   };
   const handleMouseDown = () => { if (cfg.hold) holdTimer.current = setInterval(handleInteract, 300); };
-  const handleMouseUp = () => clearInterval(holdTimer.current);
+  const handleMouseUp   = () => clearInterval(holdTimer.current);
 
   const promptLabel = node.done || nodeState === "done" ? "CLEARED"
     : nodeState === "disrupting" ? "!!"
-    : nodeState === "active" ? (cfg.hold ? "HOLD" : "DISRUPT")
+    : nodeState === "active"     ? (cfg.hold ? "HOLD" : "DISRUPT")
     : "— — —";
 
   const promptClass = `node-prompt prompt-${
     node.done || nodeState === "done" ? "done"
-    : nodeState === "active" ? "active"
-    : nodeState === "disrupting" ? "disrupting"
+    : nodeState === "active"          ? "active"
+    : nodeState === "disrupting"      ? "disrupting"
     : "idle"
   }`;
 
@@ -202,7 +213,7 @@ export default function PollutionNode({ node, onClick }) {
         style={{
           position: "absolute",
           left: `${node.x}px`,
-          top: `${node.y}px`,
+          top:  `${node.y}px`,
           transform: "translate(-50%, -50%)",
           zIndex: 10,
         }}
@@ -220,7 +231,7 @@ export default function PollutionNode({ node, onClick }) {
           >
             <div className="node-outer-ring" />
             <div className="node-body">
-              <span className="node-icon">{cfg.icon}</span>
+              <img src={cfg.img} alt={cfg.label} className="node-asset-img" />
               {particles.map(p => (
                 <div key={p.id} className="node-particle"
                   style={{ "--px": p.px, "--py": p.py, "--node-color": cfg.color,

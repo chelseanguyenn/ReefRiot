@@ -1,63 +1,3 @@
-/* .shark-avatar {
-  text-align: center;
-}
-
-.shark-image {
-  width: 220px;
-}
-
-.shark.healthy {
-  filter: brightness(1.1);
-}
-
-.shark.okay {
-  filter: saturate(0.8);
-}
-
-.shark.weak {
-  filter: grayscale(0.6);
-}
-
-.restoration-meter .meter-bar {
-  width: 250px;
-  height: 20px;
-  background: #ddd;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.restoration-meter .meter-fill {
-  height: 100%;
-  background: green;
-}
-
-.objective-list .done {
-  text-decoration: line-through;
-  opacity: 0.7;
-}
-
-.glitch-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 0, 0, 0.08);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  pointer-events: none;
-}
-
-.fact-card {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: white;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-} */
-
 :root {
   --bg: #050816;
   --panel: rgba(10, 16, 30, 0.78);
@@ -67,16 +7,120 @@
   --text: #e5f7ff;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100%;
   height: 100%;
+  min-height: 100%;
   margin: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at top, rgba(0, 229, 255, 0.14), transparent 35%),
-    linear-gradient(180deg, #070b18 0%, #03050b 100%);
-  font-family: Inter, system-ui, sans-serif;
   color: var(--text);
+  font-family: "Orbitron", Inter, system-ui, sans-serif;
+  background: #020b16;
+}
+
+body {
+  background: #020b16;
+}
+
+.game-shell {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 100vh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(0, 180, 255, 0.1), transparent 30%),
+    radial-gradient(circle at 20% 75%, rgba(0, 255, 200, 0.06), transparent 25%),
+    radial-gradient(circle at 80% 30%, rgba(100, 0, 255, 0.08), transparent 28%),
+    linear-gradient(to bottom, #031524 0%, #02111d 35%, #010814 70%, #02040a 100%);
+}
+
+.ocean-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Reef background SVG — sits behind all ocean atmosphere layers */
+.reef-bg {
+  z-index: 0;
+  opacity: 0.55;
+  background-size: cover !important;
+  background-position: center !important;
+  transition: opacity 1s ease;
+}
+
+.ocean-gradient {
+  z-index: 1;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(0, 220, 255, 0.1), transparent 22%),
+    radial-gradient(circle at 15% 50%, rgba(0, 120, 255, 0.06), transparent 25%),
+    radial-gradient(circle at 85% 60%, rgba(255, 0, 180, 0.05), transparent 22%);
+}
+
+.ocean-beams {
+  z-index: 2;
+  opacity: 0.18;
+  background:
+    repeating-linear-gradient(
+      100deg,
+      transparent 0px,
+      transparent 90px,
+      rgba(120, 220, 255, 0.08) 120px,
+      transparent 170px
+    );
+  animation: beamsDrift 14s linear infinite;
+}
+
+.ocean-waves {
+  z-index: 3;
+  opacity: 0.16;
+  background:
+    radial-gradient(ellipse at 50% 120%, rgba(0, 255, 255, 0.1) 0%, transparent 55%),
+    repeating-radial-gradient(
+      ellipse at 50% 120%,
+      rgba(0, 180, 255, 0.1) 0px,
+      rgba(0, 180, 255, 0.1) 2px,
+      transparent 10px,
+      transparent 32px
+    );
+  transform: scale(1.2);
+  animation: waveShift 9s ease-in-out infinite;
+}
+
+.ocean-particles {
+  z-index: 4;
+  opacity: 0.25;
+  background-image:
+    radial-gradient(circle, rgba(180, 240, 255, 0.9) 1px, transparent 2px),
+    radial-gradient(circle, rgba(0, 255, 255, 0.7) 1px, transparent 2px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 2px);
+  background-size: 180px 180px, 260px 260px, 320px 320px;
+  background-position: 0 0, 40px 80px, 100px 30px;
+  animation: particlesFloat 18s linear infinite;
+}
+
+.main-ui {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+}
+
+.reef-scene {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+}
+
+.arena {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 .app-shell {
@@ -126,6 +170,10 @@ html, body, #root {
   filter: grayscale(0.5) brightness(0.92);
 }
 
+.movable-shark {
+  pointer-events: none;
+}
+
 .restoration-meter {
   width: min(100%, 320px);
   margin: 0 auto;
@@ -157,55 +205,15 @@ html, body, #root {
   opacity: 0.65;
 }
 
-.fact-card {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  max-width: 280px;
-  background: rgba(10, 16, 30, 0.9);
-  color: var(--text);
-  padding: 1rem 1.1rem;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 229, 255, 0.15);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-}
-
-.glitch-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(255, 0, 0, 0.05);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: clamp(1.5rem, 3vw, 3rem);
-  pointer-events: none;
-}
-
-.reef-scene {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-}
-
-.arena {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-}
-
-.movable-shark {
-  pointer-events: none;
-}
-
 .pollution-node {
   background: rgba(10, 16, 30, 0.75);
   border: 1px solid rgba(0, 255, 220, 0.3);
   border-radius: 14px;
   padding: 16px;
   color: #8ff;
+  box-shadow:
+    0 0 14px rgba(0, 229, 255, 0.08),
+    inset 0 0 10px rgba(0, 229, 255, 0.04);
 }
 
 .pollution-node.done {
@@ -218,4 +226,63 @@ html, body, #root {
   border: 1px solid rgba(0, 255, 220, 0.25);
   border-radius: 8px;
   padding: 6px 10px;
+}
+
+/* FactCard: let the component control position (random placement via inline styles) */
+.fact-card {
+  max-width: 280px;
+  background: rgba(10, 16, 30, 0.9);
+  color: var(--text);
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  z-index: 100;
+  /* No bottom/right/position here — FactCard.jsx handles that */
+}
+
+.glitch-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 0, 0, 0.05);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(1.5rem, 3vw, 3rem);
+  pointer-events: none;
+  z-index: 25;
+}
+
+@keyframes beamsDrift {
+  0% {
+    transform: translateX(0px);
+  }
+  100% {
+    transform: translateX(60px);
+  }
+}
+
+@keyframes waveShift {
+  0% {
+    transform: scale(1.2) translateY(0px);
+    opacity: 0.1;
+  }
+  50% {
+    transform: scale(1.24) translateY(-10px);
+    opacity: 0.18;
+  }
+  100% {
+    transform: scale(1.2) translateY(0px);
+    opacity: 0.1;
+  }
+}
+
+@keyframes particlesFloat {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-40px);
+  }
 }

@@ -1,16 +1,58 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import OCEAN_FACTS from "./OceanFacts";
 
-const ARENA_WIDTH = window.innerWidth;
-const ARENA_HEIGHT = window.innerHeight;
-const SHARK_SIZE = 80;
-const MOVE_SPEED = 3.5;
+const ARENA_WIDTH          = window.innerWidth;
+const ARENA_HEIGHT         = window.innerHeight;
+const SHARK_SIZE           = 80;
+const SHARK_RADIUS         = 32;
+const MAX_SPEED            = 4.5;
+const ACCELERATION         = 0.55;
+const FRICTION             = 0.84;
 const NODE_INTERACT_RADIUS = 90;
+
+const ENEMY_COUNT      = 5;
+const ENEMY_RADIUS     = 18;
+const ENEMY_SPEED      = 1.1;
+const ENEMY_DAMAGE     = 8;
+const ENEMY_RESPAWN_MS = 4000;
+const DAMAGE_COOLDOWN  = 800;
+
+function pickRandomFact() {
+  return OCEAN_FACTS[Math.floor(Math.random() * OCEAN_FACTS.length)];
+}
+
+function randomEdgePos() {
+  const side = Math.floor(Math.random() * 4);
+  if (side === 0) return { x: Math.random() * ARENA_WIDTH, y: -30 };
+  if (side === 1) return { x: ARENA_WIDTH + 30, y: Math.random() * ARENA_HEIGHT };
+  if (side === 2) return { x: Math.random() * ARENA_WIDTH, y: ARENA_HEIGHT + 30 };
+  return { x: -30, y: Math.random() * ARENA_HEIGHT };
+}
+
+function makeEnemy(id) {
+  const pos   = randomEdgePos();
+  const angle = Math.random() * Math.PI * 2;
+  return {
+    id,
+    x: pos.x, y: pos.y,
+    vx: Math.cos(angle) * ENEMY_SPEED * (0.5 + Math.random()),
+    vy: Math.sin(angle) * ENEMY_SPEED * (0.5 + Math.random()),
+    type: ["toxicblob", "debris", "plasticchunk"][Math.floor(Math.random() * 3)],
+    alive: true,
+    respawnAt: null,
+  };
+}
+
+const INITIAL_ENEMIES = Array.from({ length: ENEMY_COUNT }, (_, i) => makeEnemy(i));
 
 const INITIAL_STATE = {
   sharkX: ARENA_WIDTH / 2,
   sharkY: ARENA_HEIGHT / 2,
+  sharkVx: 0,
+  sharkVy: 0,
   sharkFacing: 1,
   sharkState: "idle",
+  sharkAngle: 0,
   health: 100,
   stage: "corrupted",
   pollutionRemoved: 0,
@@ -28,8 +70,10 @@ const INITIAL_STATE = {
   ],
   nodesComplete: 0,
   nearNodeId: null,
-  factNode: "compactor",
-  showFact: true,
+  enemies: INITIAL_ENEMIES,
+  damagedAt: null,
+  currentFact: null,
+  showFact: false,
 };
 
 const STAT_REWARDS = {
@@ -39,9 +83,10 @@ const STAT_REWARDS = {
 };
 
 export default function useGameState() {
-  const [state, setState] = useState(INITIAL_STATE);
-  const keysRef = useRef({});
-  const rafRef  = useRef(null);
+  const [state, setState]    = useState(INITIAL_STATE);
+  const keysRef              = useRef({});
+  const rafRef               = useRef(null);
+  const lastDamageRef        = useRef(0);
 
   const handleInteract = useCallback(() => {
     setState(prev => {
@@ -49,9 +94,9 @@ export default function useGameState() {
       if (!nearNodeId) return prev;
       const nodeIdx = nodes.findIndex(n => n.id === nearNodeId);
       if (nodeIdx === -1 || nodes[nodeIdx].done) return prev;
-      const nodeType = nodes[nodeIdx].type;
-      const rewards  = STAT_REWARDS[nodeType] ?? {};
+      const rewards  = STAT_REWARDS[nodes[nodeIdx].type] ?? {};
       const newCount = nodesComplete + 1;
+      const allDone  = newCount === 3;
       return {
         ...prev,
         nodes: nodes.map((n, i) => i === nodeIdx ? { ...n, done: true } : n),
@@ -62,69 +107,114 @@ export default function useGameState() {
         })),
         nodesComplete: newCount,
         nearNodeId: null,
-        stage: newCount === 3 ? "restored" : newCount >= 1 ? "healing" : "corrupted",
+        stage: allDone ? "restored" : newCount >= 1 ? "healing" : "corrupted",
         pollutionRemoved: prev.pollutionRemoved + (rewards.pollutionRemoved ?? 0),
         coralPlanted:     prev.coralPlanted     + (rewards.coralPlanted     ?? 0),
         fishSaved:        prev.fishSaved        + (rewards.fishSaved        ?? 0),
-        factNode: nodes[nodeIdx + 1]?.type ?? prev.factNode,
-        showFact: nodeIdx + 1 < nodes.length,
+        currentFact: allDone ? pickRandomFact() : prev.currentFact,
+        showFact: allDone,
       };
     });
   }, []);
 
-  // WASD key tracking
   useEffect(() => {
     const controlled = ["w","a","s","d","arrowup","arrowdown","arrowleft","arrowright","e"];
-    const onDown = (e) => {
+    const onDown = e => {
       const key = e.key.toLowerCase();
       if (controlled.includes(key)) e.preventDefault();
       keysRef.current[key] = true;
       if (key === "e") handleInteract();
     };
-    const onUp = (e) => {
+    const onUp = e => {
       const key = e.key.toLowerCase();
       if (controlled.includes(key)) e.preventDefault();
       keysRef.current[key] = false;
     };
     window.addEventListener("keydown", onDown);
-    window.addEventListener("keyup", onUp);
-    return () => {
-      window.removeEventListener("keydown", onDown);
-      window.removeEventListener("keyup", onUp);
-    };
+    window.addEventListener("keyup",   onUp);
+    return () => { window.removeEventListener("keydown", onDown); window.removeEventListener("keyup", onUp); };
   }, [handleInteract]);
 
-  // Game loop
   useEffect(() => {
     const tick = () => {
+      const now  = Date.now();
       const keys = keysRef.current;
-      const dx = (keys["a"] || keys["arrowleft"]  ? -1 : 0)
-               + (keys["d"] || keys["arrowright"] ?  1 : 0);
-      const dy = (keys["w"] || keys["arrowup"]    ? -1 : 0)
-               + (keys["s"] || keys["arrowdown"]  ?  1 : 0);
-      const moving = dx !== 0 || dy !== 0;
-      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-      const vx = (dx / len) * MOVE_SPEED;
-      const vy = (dy / len) * MOVE_SPEED;
+
+      const inputX = (keys["a"] || keys["arrowleft"]  ? -1 : 0) + (keys["d"] || keys["arrowright"] ? 1 : 0);
+      const inputY = (keys["w"] || keys["arrowup"]    ? -1 : 0) + (keys["s"] || keys["arrowdown"]  ? 1 : 0);
+      const ilen   = Math.sqrt(inputX * inputX + inputY * inputY) || 1;
+      const hasInput = inputX !== 0 || inputY !== 0;
+      const ax = hasInput ? (inputX / ilen) * ACCELERATION : 0;
+      const ay = hasInput ? (inputY / ilen) * ACCELERATION : 0;
 
       setState(prev => {
-        const nx = Math.max(SHARK_SIZE / 2, Math.min(ARENA_WIDTH  - SHARK_SIZE / 2, prev.sharkX + vx));
-        const ny = Math.max(SHARK_SIZE / 2, Math.min(ARENA_HEIGHT - SHARK_SIZE / 2, prev.sharkY + vy));
+        // Momentum
+        let nvx = (prev.sharkVx + ax) * FRICTION;
+        let nvy = (prev.sharkVy + ay) * FRICTION;
+        const spd = Math.sqrt(nvx * nvx + nvy * nvy);
+        if (spd > MAX_SPEED) { nvx = (nvx / spd) * MAX_SPEED; nvy = (nvy / spd) * MAX_SPEED; }
+
+        const nx = Math.max(SHARK_SIZE / 2, Math.min(ARENA_WIDTH  - SHARK_SIZE / 2, prev.sharkX + nvx));
+        const ny = Math.max(SHARK_SIZE / 2, Math.min(ARENA_HEIGHT - SHARK_SIZE / 2, prev.sharkY + nvy));
+        const moving = spd > 0.15;
+        const angle  = moving ? Math.atan2(nvy, nvx) * (180 / Math.PI) : prev.sharkAngle;
+
+        // Near node
         let nearNodeId = null, nearDist = Infinity;
         for (const node of prev.nodes) {
           if (node.done) continue;
-          const dist = Math.hypot(nx - node.x, ny - node.y);
-          if (dist < NODE_INTERACT_RADIUS && dist < nearDist) {
-            nearDist = dist; nearNodeId = node.id;
-          }
+          const d = Math.hypot(nx - node.x, ny - node.y);
+          if (d < NODE_INTERACT_RADIUS && d < nearDist) { nearDist = d; nearNodeId = node.id; }
         }
+
+        // Enemies
+        let health    = prev.health;
+        let damagedAt = prev.damagedAt;
+
+        const updatedEnemies = prev.enemies.map(enemy => {
+          if (!enemy.alive) {
+            if (enemy.respawnAt && now >= enemy.respawnAt) return makeEnemy(enemy.id);
+            return enemy;
+          }
+
+          // Weakly home toward shark
+          const toSharkX = nx - enemy.x;
+          const toSharkY = ny - enemy.y;
+          const tLen = Math.hypot(toSharkX, toSharkY) || 1;
+          let evx = enemy.vx + (toSharkX / tLen) * 0.018;
+          let evy = enemy.vy + (toSharkY / tLen) * 0.018;
+          const espd = Math.sqrt(evx * evx + evy * evy);
+          if (espd > ENEMY_SPEED * 1.5) { evx = (evx / espd) * ENEMY_SPEED * 1.5; evy = (evy / espd) * ENEMY_SPEED * 1.5; }
+
+          let ex = enemy.x + evx;
+          let ey = enemy.y + evy;
+          if (ex < 0 || ex > ARENA_WIDTH)  evx = -evx;
+          if (ey < 0 || ey > ARENA_HEIGHT) evy = -evy;
+
+          const distToShark = Math.hypot(ex - nx, ey - ny);
+          if (distToShark < SHARK_RADIUS + ENEMY_RADIUS) {
+            if (now - lastDamageRef.current > DAMAGE_COOLDOWN) {
+              health = Math.max(0, health - ENEMY_DAMAGE);
+              damagedAt = now;
+              lastDamageRef.current = now;
+            }
+            return { ...enemy, alive: false, respawnAt: now + ENEMY_RESPAWN_MS };
+          }
+
+          return { ...enemy, x: ex, y: ey, vx: evx, vy: evy };
+        });
+
         return {
           ...prev,
-          sharkX: moving ? nx : prev.sharkX,
-          sharkY: moving ? ny : prev.sharkY,
-          sharkFacing: dx > 0 ? 1 : dx < 0 ? -1 : prev.sharkFacing,
+          sharkX: nx, sharkY: ny,
+          sharkVx: nvx, sharkVy: nvy,
+          sharkFacing: nvx > 0.1 ? 1 : nvx < -0.1 ? -1 : prev.sharkFacing,
           sharkState: prev.nodesComplete === 3 ? "restored" : nearNodeId ? "disrupting" : moving ? "moving" : "idle",
+          sharkAngle: angle,
           nearNodeId,
+          enemies: updatedEnemies,
+          health,
+          damagedAt,
         };
       });
 
@@ -138,8 +228,9 @@ export default function useGameState() {
     setState(prev => {
       const nodeIdx = prev.nodes.findIndex(n => n.id === nodeId);
       if (nodeIdx === -1 || prev.nodes[nodeIdx].done) return prev;
-      const rewards = STAT_REWARDS[prev.nodes[nodeIdx].type] ?? {};
+      const rewards  = STAT_REWARDS[prev.nodes[nodeIdx].type] ?? {};
       const newCount = prev.nodesComplete + 1;
+      const allDone  = newCount === 3;
       return {
         ...prev,
         nodes: prev.nodes.map((n, i) => i === nodeIdx ? { ...n, done: true } : n),
@@ -149,17 +240,17 @@ export default function useGameState() {
           active: i === nodeIdx + 1 ? true  : i === nodeIdx ? false : o.active,
         })),
         nodesComplete: newCount,
-        stage: newCount === 3 ? "restored" : newCount >= 1 ? "healing" : "corrupted",
+        stage: allDone ? "restored" : newCount >= 1 ? "healing" : "corrupted",
         pollutionRemoved: prev.pollutionRemoved + (rewards.pollutionRemoved ?? 0),
         coralPlanted:     prev.coralPlanted     + (rewards.coralPlanted     ?? 0),
         fishSaved:        prev.fishSaved        + (rewards.fishSaved        ?? 0),
-        factNode: prev.nodes[nodeIdx + 1]?.type ?? prev.factNode,
-        showFact: nodeIdx + 1 < prev.nodes.length,
+        currentFact: allDone ? pickRandomFact() : prev.currentFact,
+        showFact: allDone,
       };
     });
   }, []);
 
-  const reset = useCallback(() => setState(INITIAL_STATE), []);
+  const reset       = useCallback(() => setState(INITIAL_STATE), []);
   const dismissFact = useCallback(() => setState(p => ({ ...p, showFact: false })), []);
 
   return { state, handleNodeClick, handleInteract, reset, dismissFact };
