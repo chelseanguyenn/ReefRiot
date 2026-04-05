@@ -7,6 +7,7 @@ import ObjectiveList from "./components/ObjectiveList";
 import StatsPanel from "./components/StatsPanel";
 import GlitchOverlay from "./components/GlitchOverlay";
 import FactCard from "./components/FactCard";
+import SharkAvatar from "./components/SharkAvatar";
 
 export default function App() {
   const { state, handleNodeClick, handleInteract, reset, dismissFact } = useGameState();
