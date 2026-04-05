@@ -1,15 +1,3 @@
-// import React from "react";
-
-// export default function FactCard({ title, fact, onClose }) {
-//   return (
-//     <div className="fact-card">
-//       <h4>{title}</h4>
-//       <p>{fact}</p>
-//       <button onClick={onClose}>Close</button>
-//     </div>
-//   );
-// }
-
 import { useState, useEffect } from "react";
 
 const styles = `
@@ -110,7 +98,7 @@ const styles = `
     transition: all 0.3s ease;
   }
 
-  .status-idle    { color: #00ffe0; background: #00ffe011; border: 1px solid #00ffe033; }
+  .status-idle       { color: #00ffe0; background: #00ffe011; border: 1px solid #00ffe033; }
   .status-disrupting { color: #ff2dff; background: #ff2dff11; border: 1px solid #ff2dff44; animation: blinkStatus 0.5s step-end infinite; }
   .status-restored   { color: #39ff14; background: #39ff1411; border: 1px solid #39ff1444; }
 
@@ -139,6 +127,47 @@ const styles = `
     border: 1px solid #00ffe033;
     opacity: 0.4;
   }
+
+  .fact-card {
+    background: #041218;
+    border: 1px solid #00ffe033;
+    border-radius: 6px;
+    padding: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    color: #00ffe0;
+  }
+
+  .fact-card h4 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .fact-card p {
+    margin: 0 0 12px;
+    font-size: 12px;
+    color: #a0d8d0;
+    line-height: 1.5;
+  }
+
+  .fact-card button {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    background: transparent;
+    border: 1px solid #00ffe044;
+    color: #00ffe0;
+    border-radius: 2px;
+    cursor: pointer;
+  }
+
+  .fact-card button:hover {
+    background: #00ffe011;
+    border-color: #00ffe0;
+  }
 `;
 
 const STATUS_LABELS = {
@@ -147,7 +176,7 @@ const STATUS_LABELS = {
   restored: "REEF FREED",
 };
 
-export default function SharkAvatar({ state = "idle", hp = 3, maxHp = 3 }) {
+export function SharkAvatar({ state = "idle", hp = 3, maxHp = 3 }) {
   const [glitchFrame, setGlitchFrame] = useState(false);
 
   useEffect(() => {
@@ -205,6 +234,19 @@ export default function SharkAvatar({ state = "idle", hp = 3, maxHp = 3 }) {
             <div key={i} className={`hp-pip${i >= hp ? " empty" : ""}`} />
           ))}
         </div>
+      </div>
+    </>
+  );
+}
+
+export default function FactCard({ title, fact, onClose }) {
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="fact-card">
+        <h4>{title}</h4>
+        <p>{fact}</p>
+        <button onClick={onClose}>Close</button>
       </div>
     </>
   );
