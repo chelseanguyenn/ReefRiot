@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
+  <!-- net mesh base -->
+  <ellipse cx="20" cy="22" rx="14" ry="10" fill="#55aaff" fill-opacity="0.15" stroke="#55aaff" stroke-width="1"/>
+  <!-- net grid lines horizontal -->
+  <path d="M6 18 Q20 16 34 18" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.7"/>
+  <path d="M6 22 Q20 20 34 22" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.7"/>
+  <path d="M8 26 Q20 24 32 26" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.6"/>
+  <!-- net grid lines vertical -->
+  <path d="M11 13 Q10 22 12 31" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.6"/>
+  <path d="M16 12 Q15 22 17 32" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.7"/>
+  <path d="M20 12 Q20 22 20 32" stroke="#55aaff" stroke-width="0.8" fill="none" stroke-opacity="0.7"/>
+  <path d="M24 12 Q25 22 23 32" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.7"/>
+  <path d="M29 13 Q30 22 28 31" stroke="#55aaff" stroke-width="0.7" fill="none" stroke-opacity="0.6"/>
+  <!-- top rope -->
+  <path d="M8 14 Q20 10 32 14" stroke="#aaddff" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <!-- rope float balls -->
+  <circle cx="8" cy="14" r="2.5" fill="#ff4444" stroke="#ff6666" stroke-width="0.5"/>
+  <circle cx="14" cy="11.5" r="2.5" fill="#ff4444" stroke="#ff6666" stroke-width="0.5"/>
+  <circle cx="20" cy="10" r="2.5" fill="#ff4444" stroke="#ff6666" stroke-width="0.5"/>
+  <circle cx="26" cy="11.5" r="2.5" fill="#ff4444" stroke="#ff6666" stroke-width="0.5"/>
+  <circle cx="32" cy="14" r="2.5" fill="#ff4444" stroke="#ff6666" stroke-width="0.5"/>
+  <!-- glow -->
+  <ellipse cx="20" cy="22" rx="14" ry="10" fill="none" stroke="#55aaff" stroke-width="0.5" stroke-opacity="0.3"/>
+</svg>

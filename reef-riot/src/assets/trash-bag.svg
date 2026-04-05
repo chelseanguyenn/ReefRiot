@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- bag body -->
+  <path d="M8 14 Q7 26 16 27 Q25 26 24 14 Z" fill="#c8b4ff" fill-opacity="0.5" stroke="#a080ff" stroke-width="1"/>
+  <!-- bag handles -->
+  <path d="M12 14 Q11 8 14 7 Q16 6.5 16 9" stroke="#a080ff" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M20 14 Q21 8 18 7 Q16 6.5 16 9" stroke="#a080ff" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- fold lines -->
+  <path d="M10 18 Q16 16 22 18" stroke="#c8b4ff" stroke-width="0.6" fill="none" stroke-opacity="0.6"/>
+  <path d="M9 22 Q16 20 23 22" stroke="#c8b4ff" stroke-width="0.6" fill="none" stroke-opacity="0.6"/>
+  <!-- trapped bubble -->
+  <circle cx="16" cy="20" r="3" fill="#ffffff" fill-opacity="0.1" stroke="#c8b4ff" stroke-width="0.5"/>
+  <!-- glow outline -->
+  <path d="M8 14 Q7 26 16 27 Q25 26 24 14 Z" fill="none" stroke="#a080ff" stroke-width="0.5" stroke-opacity="0.4"/>
+</svg>

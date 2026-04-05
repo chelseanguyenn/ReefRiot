@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import OCEAN_FACTS from "./OceanFacts";
+import { SpawnSystem, updateTrash } from "../game/SpawnSystem";
+import { runCollisions, isThreatNearby } from "../game/Collisions";
 
 const ARENA_WIDTH          = window.innerWidth;
 const ARENA_HEIGHT         = window.innerHeight;
@@ -74,6 +76,10 @@ const INITIAL_STATE = {
   damagedAt: null,
   currentFact: null,
   showFact: false,
+  // ── Trash system ──
+  trash: [],
+  threat: false,
+  collisionEvents: [],
 };
 
 const STAT_REWARDS = {
@@ -82,11 +88,18 @@ const STAT_REWARDS = {
   drill:     { pollutionRemoved: 6, coralPlanted: 4, fishSaved: 3 },
 };
 
-export default function useGameState() {
+export default function UseGameState() {
   const [state, setState]    = useState(INITIAL_STATE);
   const keysRef              = useRef({});
   const rafRef               = useRef(null);
   const lastDamageRef        = useRef(0);
+
+  // ── Trash refs (live values accessible inside RAF without stale closure) ──
+  const trashRef             = useRef([]);
+  const frameRef             = useRef(0);
+  const spawnSystem          = useRef(new SpawnSystem());
+  const sharkPosRef          = useRef({ x: ARENA_WIDTH / 2, y: ARENA_HEIGHT / 2 });
+  const nodesRef             = useRef(INITIAL_STATE.nodes);
 
   const handleInteract = useCallback(() => {
     setState(prev => {
@@ -97,9 +110,11 @@ export default function useGameState() {
       const rewards  = STAT_REWARDS[nodes[nodeIdx].type] ?? {};
       const newCount = nodesComplete + 1;
       const allDone  = newCount === 3;
+      const newNodes = nodes.map((n, i) => i === nodeIdx ? { ...n, done: true } : n);
+      nodesRef.current = newNodes;
       return {
         ...prev,
-        nodes: nodes.map((n, i) => i === nodeIdx ? { ...n, done: true } : n),
+        nodes: newNodes,
         objectives: objectives.map((o, i) => ({
           ...o,
           done:   i === nodeIdx     ? true  : o.done,
@@ -147,8 +162,11 @@ export default function useGameState() {
       const ax = hasInput ? (inputX / ilen) * ACCELERATION : 0;
       const ay = hasInput ? (inputY / ilen) * ACCELERATION : 0;
 
+      frameRef.current += 1;
+      const frame = frameRef.current;
+
       setState(prev => {
-        // Momentum
+        // ── Shark momentum (unchanged) ──
         let nvx = (prev.sharkVx + ax) * FRICTION;
         let nvy = (prev.sharkVy + ay) * FRICTION;
         const spd = Math.sqrt(nvx * nvx + nvy * nvy);
@@ -159,7 +177,10 @@ export default function useGameState() {
         const moving = spd > 0.15;
         const angle  = moving ? Math.atan2(nvy, nvx) * (180 / Math.PI) : prev.sharkAngle;
 
-        // Near node
+        // Keep shark pos ref current for trash collisions
+        sharkPosRef.current = { x: nx, y: ny };
+
+        // ── Near node (unchanged) ──
         let nearNodeId = null, nearDist = Infinity;
         for (const node of prev.nodes) {
           if (node.done) continue;
@@ -167,7 +188,7 @@ export default function useGameState() {
           if (d < NODE_INTERACT_RADIUS && d < nearDist) { nearDist = d; nearNodeId = node.id; }
         }
 
-        // Enemies
+        // ── Enemies (unchanged) ──
         let health    = prev.health;
         let damagedAt = prev.damagedAt;
 
@@ -176,8 +197,6 @@ export default function useGameState() {
             if (enemy.respawnAt && now >= enemy.respawnAt) return makeEnemy(enemy.id);
             return enemy;
           }
-
-          // Weakly home toward shark
           const toSharkX = nx - enemy.x;
           const toSharkY = ny - enemy.y;
           const tLen = Math.hypot(toSharkX, toSharkY) || 1;
@@ -185,12 +204,10 @@ export default function useGameState() {
           let evy = enemy.vy + (toSharkY / tLen) * 0.018;
           const espd = Math.sqrt(evx * evx + evy * evy);
           if (espd > ENEMY_SPEED * 1.5) { evx = (evx / espd) * ENEMY_SPEED * 1.5; evy = (evy / espd) * ENEMY_SPEED * 1.5; }
-
           let ex = enemy.x + evx;
           let ey = enemy.y + evy;
           if (ex < 0 || ex > ARENA_WIDTH)  evx = -evx;
           if (ey < 0 || ey > ARENA_HEIGHT) evy = -evy;
-
           const distToShark = Math.hypot(ex - nx, ey - ny);
           if (distToShark < SHARK_RADIUS + ENEMY_RADIUS) {
             if (now - lastDamageRef.current > DAMAGE_COOLDOWN) {
@@ -200,9 +217,51 @@ export default function useGameState() {
             }
             return { ...enemy, alive: false, respawnAt: now + ENEMY_RESPAWN_MS };
           }
-
           return { ...enemy, x: ex, y: ey, vx: evx, vy: evy };
         });
+
+        // ── Trash system ──
+        const compactorDone = prev.nodes.find(n => n.id === "compactor")?.done ?? false;
+        const ghostnetDone  = prev.nodes.find(n => n.id === "ghostnet")?.done  ?? false;
+        const drillDone     = prev.nodes.find(n => n.id === "drill")?.done     ?? false;
+
+        // Spawn new trash (drill not cleared = double rate)
+        const newPiece = spawnSystem.current.tick(
+          ARENA_WIDTH,
+          ARENA_HEIGHT,
+          !drillDone,                          // drill active = faster spawns
+          ghostnetDone ? ["net"] : []          // ghost net blocks nets
+        );
+
+        // Move existing trash
+        let currentTrash = trashRef.current;
+        if (newPiece) currentTrash = [...currentTrash, newPiece];
+        currentTrash = updateTrash(currentTrash, frame);
+
+        // Collisions against shark position
+        const {
+          updatedTrash,
+          healthDelta,
+          pollutionDelta,
+          fishSavedDelta,
+          collisionEvents,
+        } = runCollisions(currentTrash, nx, ny, SHARK_RADIUS, {
+          compactor: compactorDone,
+          ghostNet:  ghostnetDone,
+          drill:     !drillDone,
+        });
+
+        // Apply trash damage on top of enemy damage (respects same cooldown)
+        if (healthDelta < 0 && now - lastDamageRef.current > DAMAGE_COOLDOWN) {
+          health = Math.max(0, health + healthDelta);
+          damagedAt = now;
+          lastDamageRef.current = now;
+        }
+
+        // Write back to ref so next frame reads updated array
+        trashRef.current = updatedTrash;
+
+        const threat = isThreatNearby(updatedTrash, nx, ny);
 
         return {
           ...prev,
@@ -215,6 +274,13 @@ export default function useGameState() {
           enemies: updatedEnemies,
           health,
           damagedAt,
+          // Trash state exposed to App.jsx
+          trash: updatedTrash,
+          threat,
+          collisionEvents,
+          // Accumulate trash stats
+          pollutionRemoved: prev.pollutionRemoved + pollutionDelta,
+          fishSaved:        prev.fishSaved        + fishSavedDelta,
         };
       });
 
@@ -231,9 +297,11 @@ export default function useGameState() {
       const rewards  = STAT_REWARDS[prev.nodes[nodeIdx].type] ?? {};
       const newCount = prev.nodesComplete + 1;
       const allDone  = newCount === 3;
+      const newNodes = prev.nodes.map((n, i) => i === nodeIdx ? { ...n, done: true } : n);
+      nodesRef.current = newNodes;
       return {
         ...prev,
-        nodes: prev.nodes.map((n, i) => i === nodeIdx ? { ...n, done: true } : n),
+        nodes: newNodes,
         objectives: prev.objectives.map((o, i) => ({
           ...o,
           done:   i === nodeIdx     ? true  : o.done,
@@ -249,8 +317,36 @@ export default function useGameState() {
       };
     });
   }, []);
+  
+  const reset = useCallback(() => {
+  const freshState = {
+    ...INITIAL_STATE,
+    enemies: Array.from({ length: ENEMY_COUNT }, (_, i) => makeEnemy(i)),
+    nodes: INITIAL_STATE.nodes.map((n) => ({ ...n, done: false })),
+    objectives: INITIAL_STATE.objectives.map((o) => ({ ...o })),
+    trash: [],
+    threat: false,
+    collisionEvents: [],
+    currentFact: null,
+    showFact: false,
+    damagedAt: null,
+  };
 
-  const reset       = useCallback(() => setState(INITIAL_STATE), []);
+  trashRef.current = [];
+  frameRef.current = 0;
+  spawnSystem.current = new SpawnSystem();
+  nodesRef.current = freshState.nodes;
+  setState(freshState);
+}, []);
+
+  // const reset = useCallback(() => {
+  //   trashRef.current = [];
+  //   frameRef.current = 0;
+  //   spawnSystem.current.reset();
+  //   nodesRef.current = INITIAL_STATE.nodes;
+  //   setState(INITIAL_STATE);
+  // }, []);
+
   const dismissFact = useCallback(() => setState(p => ({ ...p, showFact: false })), []);
 
   return { state, handleNodeClick, handleInteract, reset, dismissFact };

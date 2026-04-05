@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- straw tube at slight angle -->
+  <rect x="14" y="3" width="5" height="26" rx="2.5" transform="rotate(12 16 16)" fill="#ff8844" fill-opacity="0.7" stroke="#ffaa66" stroke-width="1"/>
+  <!-- stripe pattern -->
+  <rect x="14" y="3" width="5" height="4" rx="2" transform="rotate(12 16 16)" fill="#ffffff" fill-opacity="0.25"/>
+  <rect x="14" y="11" width="5" height="4" transform="rotate(12 16 16)" fill="#ffffff" fill-opacity="0.25"/>
+  <rect x="14" y="19" width="5" height="4" transform="rotate(12 16 16)" fill="#ffffff" fill-opacity="0.25"/>
+  <!-- highlight -->
+  <rect x="15.5" y="3" width="1.5" height="26" rx="0.75" transform="rotate(12 16 16)" fill="#ffffff" fill-opacity="0.2"/>
+  <!-- glow -->
+  <rect x="14" y="3" width="5" height="26" rx="2.5" transform="rotate(12 16 16)" fill="none" stroke="#ffaa66" stroke-width="0.5" stroke-opacity="0.5"/>
+</svg>
